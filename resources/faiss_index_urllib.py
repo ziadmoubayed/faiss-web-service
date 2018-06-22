@@ -2,7 +2,7 @@ def GET_FAISS_RESOURCES():
     import os
     import urllib
 
-    tmp_folder = '/tmp/faiss-web-service'
+    tmp_folder = '/home/gorih/PycharmProjects/faiss-web-service/resources/'
     if not os.path.exists(tmp_folder):
         os.makedirs(tmp_folder)
 
@@ -13,7 +13,7 @@ def GET_FAISS_RESOURCES():
 def GET_FAISS_INDEX():
     import faiss
 
-    index_file_path = '/tmp/faiss-web-service/index'
+    index_file_path = '/home/gorih/PycharmProjects/faiss-web-service/resources/index'
     return faiss.read_index(index_file_path)
 
 def GET_FAISS_ID_TO_VECTOR():

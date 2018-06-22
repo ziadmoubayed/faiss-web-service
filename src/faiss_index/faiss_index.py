@@ -1,8 +1,8 @@
 import faiss
 import numpy as np
 
-class FaissIndex(object):
 
+class FaissIndex(object):
     def __init__(self, index, id_to_vector):
         assert index
         assert id_to_vector
@@ -24,7 +24,7 @@ class FaissIndex(object):
 
     def __search__(self, ids, vectors, k):
         def neighbor_dict(id_, score):
-            return { 'id': long(id_), 'score': float(score) }
+            return { 'id': int(id_), 'score': float(score) }
 
         def result_dict(id_, vector, neighbors):
             return { 'id': id_, 'vector': vector.tolist(), 'neighbors': neighbors }
@@ -38,7 +38,7 @@ class FaissIndex(object):
         for id_, vector, neighbors, scores in zip(ids, vectors, neighbors, scores):
             neighbors_scores = zip(neighbors, scores)
             neighbors_scores = [(n, s) for n, s in neighbors_scores if n != id_ and n != -1]
-            neighbors_scores = [neighbor_dict(n, s) for n, s in neighbors_scores]
+            neighbors_scores = [self.neighbor_dict(n, s) for n, s in neighbors_scores]
 
             results.append(result_dict(id_, vector, neighbors_scores))
 
