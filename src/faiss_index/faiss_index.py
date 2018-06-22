@@ -38,7 +38,7 @@ class FaissIndex(object):
         for id_, vector, neighbors, scores in zip(ids, vectors, neighbors, scores):
             neighbors_scores = zip(neighbors, scores)
             neighbors_scores = [(n, s) for n, s in neighbors_scores if n != id_ and n != -1]
-            neighbors_scores = [self.neighbor_dict(n, s) for n, s in neighbors_scores]
+            neighbors_scores = [neighbor_dict(n, s) for n, s in neighbors_scores]
 
             results.append(result_dict(id_, vector, neighbors_scores))
 
