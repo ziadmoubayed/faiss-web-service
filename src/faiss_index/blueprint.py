@@ -2,6 +2,8 @@ from jsonschema import validate, ValidationError
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 from src.faiss_index.faiss_index import FaissIndex
+from src.vectors.vector_utils import VectorUtils
+import json
 
 try:
     import uwsgi
@@ -20,6 +22,22 @@ def record(setup_state):
         setup_state.app.config['GET_FAISS_INDEX'],
         setup_state.app.config['GET_FAISS_ID_TO_VECTOR'],
         setup_state.app.config.get('UPDATE_FAISS_AFTER_SECONDS'))
+
+@blueprint.route('/vector', methods=['GET'])
+def get_vector():
+    body = request.args.get('body')
+    return json.dumps(VectorUtils().getVector(body).tolist())
+
+@blueprint.route('/faiss/similar', methods=['GET'])
+def get_similar():
+    body = request.args.get('body')
+    limit = request.args.get('limit')
+    vec_utils = VectorUtils()
+    vector = vec_utils.getVector(body)
+    vectors = [vector]
+    results_vectors = blueprint.faiss_index.search_by_vectors(vectors, limit)
+    return results_vectors
+
 
 @blueprint.route('/faiss/search', methods=['POST'])
 def search():
@@ -42,7 +60,8 @@ def search():
         })
 
         results_ids = blueprint.faiss_index.search_by_ids(json['ids'], json['k']) if 'ids' in json else []
-        results_vectors = blueprint.faiss_index.search_by_vectors(json['vectors'], json['k']) if 'vectors' in json else []
+        vectors = json['vectors']
+        results_vectors = blueprint.faiss_index.search_by_vectors(vectors, json['k']) if 'vectors' in json else []
 
         return jsonify(results_ids + results_vectors)
 

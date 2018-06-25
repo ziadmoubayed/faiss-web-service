@@ -18,3 +18,5 @@ def GET_FAISS_ID_TO_VECTOR():
             pass
 
     return id_to_vector
+
+UPDATE_FAISS_AFTER_SECONDS = 60

@@ -1,5 +1,5 @@
-import faiss
 import numpy as np
+import redis
 
 
 class FaissIndex(object):
@@ -9,6 +9,7 @@ class FaissIndex(object):
 
         self.index = index
         self.id_to_vector = id_to_vector
+        self.redis = redis.Redis()
 
     def search_by_ids(self, ids, k):
         vectors = [self.id_to_vector(id_) for id_ in ids]
@@ -22,9 +23,11 @@ class FaissIndex(object):
 
         return results
 
+    def neighbor_dict(self, id_, score):
+        uuid = self.id_to_vector(int(id_))
+        return { 'id': uuid, 'score': float(score), 'text': self.redis.get("uuid_vs_body:"+uuid).decode("utf-8")}
+
     def __search__(self, ids, vectors, k):
-        def neighbor_dict(id_, score):
-            return { 'id': int(id_), 'score': float(score) }
 
         def result_dict(id_, vector, neighbors):
             return { 'id': id_, 'vector': vector.tolist(), 'neighbors': neighbors }
@@ -38,7 +41,7 @@ class FaissIndex(object):
         for id_, vector, neighbors, scores in zip(ids, vectors, neighbors, scores):
             neighbors_scores = zip(neighbors, scores)
             neighbors_scores = [(n, s) for n, s in neighbors_scores if n != id_ and n != -1]
-            neighbors_scores = [neighbor_dict(n, s) for n, s in neighbors_scores]
+            neighbors_scores = [self.neighbor_dict(n, s) for n, s in neighbors_scores]
 
             results.append(result_dict(id_, vector, neighbors_scores))
 
