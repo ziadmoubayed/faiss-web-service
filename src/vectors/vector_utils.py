@@ -1,6 +1,7 @@
 import gensim
 import nltk
 import fastText as fast
+import numpy as np
 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
