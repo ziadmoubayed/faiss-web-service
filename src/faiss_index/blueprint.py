@@ -44,8 +44,8 @@ def get_similar():
 @blueprint.route('/faiss/search', methods=['POST'])
 def search():
     try:
-        json_input = request.get_json(force=True)
-        validate(json_input, {
+        json = request.get_json(force=True)
+        validate(json, {
             'type': 'object',
             'required': ['k'],
             'properties': {

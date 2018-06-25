@@ -10,16 +10,16 @@ import redis
 from src.vectors.vector_utils import VectorUtils
 
 d = 50
-key = "doc2vector"
-id_vs_uuid = {}
+index_input_queue = "doc2vector"
 path_for_index = "/home/gorih/PycharmProjects/faiss-web-service/resources/index"
-id_to_vector_path = "/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p"
-# make faiss available
+id_to_uuid_file_path = "/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p"
+id_vs_uuid = {}
+
 index = faiss.IndexFlatL2(d)  # build the index
 xb = np.zeros(shape=(0, d)).astype('float32')
 index.add(xb)
 c = Condition()
-vectors = VectorUtils()
+vectors = VectorUtils.init("/home/gorih/Documents/fastText/klangoo-rus.bin", "russian")
 indexSize = 0
 
 
@@ -28,7 +28,7 @@ def saveIndex():
     global id_vs_uuid
     print("Saving the index")
     faiss.write_index(index, path_for_index)
-    with open(id_to_vector_path, 'wb') as handle:
+    with open(id_to_uuid_file_path, 'wb') as handle:
         pickle.dump(id_vs_uuid, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -47,6 +47,7 @@ def addToIndex(uuid, vector):
 
 
 def run():
+    vectors = VectorUtils()
     r = redis.Redis()
 
     def time_out(last_update):
@@ -54,7 +55,7 @@ def run():
 
     last_index_update = 0
     while True:
-        value = r.lpop(key)
+        value = r.lpop(index_input_queue)
         while value and not time_out(last_index_update):
             data = json.loads(value)
             value_str = data['body']
@@ -62,7 +63,7 @@ def run():
             vector = vectors.getVector(value_str)
             addToIndex(uuid, vector)
             r.set("uuid_vs_body:" + uuid, value_str)
-            value = r.lpop(key)
+            value = r.lpop(index_input_queue)
 
         saveIndex()
         time.sleep(10)
@@ -82,7 +83,6 @@ def size():
 def generate_index():
     thread = Thread(target=run)
     thread.start()
-    # app.run(port=5051, host='0.0.0.0')
 
 if __name__ == '__main__':
     generate_index()

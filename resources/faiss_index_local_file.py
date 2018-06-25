@@ -1,14 +1,11 @@
 def GET_FAISS_INDEX():
     import faiss
-
-    index_file_path = '/home/gorih/PycharmProjects/faiss-web-service/resources/index'
-    return faiss.read_index(index_file_path)
+    return faiss.read_index(INDEX_FILE_PATH)
 
 def GET_FAISS_ID_TO_VECTOR():
     import pickle
 
-    ids_vectors_path = '/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p'
-    with open(ids_vectors_path, 'rb') as f:
+    with open(IDS_MAP_FILE_PATH, 'rb') as f:
         ids_vectors = pickle.load(f)
 
     def id_to_vector(id_):
@@ -19,4 +16,13 @@ def GET_FAISS_ID_TO_VECTOR():
 
     return id_to_vector
 
+INDEX_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/index"
+
+IDS_MAP_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p"
+
 UPDATE_FAISS_AFTER_SECONDS = 60
+
+FASTTEXT_MODEL_PATH = "/home/gorih/Documents/fastText/klangoo-rus.bin"
+
+LANGUAGE = "russian"
+

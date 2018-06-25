@@ -1,3 +1,16 @@
+# Gorih extensions
+Before launching APP please configure and launch prepare_index.py script
+Inside you will find parameters, that must be set correctly:
+
+index_input_queue  <- redis queue from which new documents will come to index
+path_for_index     <- path where application should write faiss index file
+id_to_uuid_path  <- path where application should save 'id <-> uuid' mapping file
+
+Please mention, that these values should match with values, set in config.py implementation
+/home/gorih/PycharmProjects/faiss-web-service/resources/faiss_index_local_file.py
+
+
+
 # Faiss Web Service
 
 [![Build Status](https://app.wercker.com/status/853a8945150f857d0c394e34884d33e0/s/master)](https://app.wercker.com/project/byKey/853a8945150f857d0c394e34884d33e0)
