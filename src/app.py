@@ -6,7 +6,7 @@ from src.vectors.vector_utils import VectorUtils
 
 app = Flask(__name__)
 app.config.from_object('config')
-app.config.from_pyfile('/home/gorih/PycharmProjects/faiss-web-service/resources/faiss_index_local_file.py')
+app.config.from_pyfile('../resources/faiss_index_local_file.py')
 
 app.register_blueprint(InternalBlueprint)
 app.register_blueprint(FaissIndexBlueprint)
@@ -22,4 +22,4 @@ def initiate_application(app):
 
 if __name__ == "__main__":
     initiate_application(app)
-    app.run(host='0.0.0.0')
+    app.run(app.config.get("APP_HOST"), app.config.get('APP_PORT'))

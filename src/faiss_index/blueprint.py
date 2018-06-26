@@ -18,12 +18,14 @@ blueprint = Blueprint('faiss_index', __name__)
 @blueprint.record_once
 def record(setup_state):
     manage_faiss_index(
-        setup_state.app.config.get('GET_FAISS_RESOURCES'),
         setup_state.app.config.get('INDEX_DIMENSIONS'),
         setup_state.app.config.get('INDEX_INPUT_QUEUE'),
         setup_state.app.config.get('INDEX_FILE_PATH'),
         setup_state.app.config.get('IDS_MAP_FILE_PATH'),
-        setup_state.app.config.get('UPDATE_FAISS_AFTER_SECONDS'))
+        setup_state.app.config.get('REDIS_HOST'),
+        setup_state.app.config.get('REDIS_PORT'),
+        setup_state.app.config.get('REDIS_DB'),
+        setup_state.app.config.get('INDEX_WRITES_FREQUENCY_SEC'))
 
 @blueprint.route('/vector', methods=['GET'])
 def get_vector():
@@ -76,41 +78,6 @@ def search():
         print('Server error', e)
         return 'Server error', 500
 
-def manage_faiss_index(get_faiss_resources, d, input_queeu, faiss_index_path, ids_mapping_path, update_after_seconds):
+def manage_faiss_index(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency):
+    blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency)
 
-    SIGNAL_SET_FAISS_RESOURCES = 1
-    SIGNAL_SET_FAISS_INDEX = 2
-
-    def set_faiss_resources(signal = None):
-        print('Getting Faiss resources')
-        get_faiss_resources()
-
-        if uwsgi and signal:
-            uwsgi.signal(SIGNAL_SET_FAISS_INDEX)
-
-    def set_faiss_index(signal = None):
-        print('Getting Faiss index')
-        blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path)
-
-    def set_periodically():
-        if isinstance(update_after_seconds, int):
-
-            uwsgi.register_signal(SIGNAL_SET_FAISS_INDEX, 'workers', set_faiss_index)
-
-            if get_faiss_resources:
-                uwsgi.register_signal(SIGNAL_SET_FAISS_RESOURCES, 'worker', set_faiss_resources)
-                uwsgi.add_timer(SIGNAL_SET_FAISS_RESOURCES, update_after_seconds)
-            else:
-                uwsgi.add_timer(SIGNAL_SET_FAISS_INDEX, update_after_seconds)
-
-        else:
-            print('Failed to set periodic faiss index updates')
-            print('UPDATE_FAISS_AFTER_SECONDS must be an integer')
-
-    if uwsgi and update_after_seconds:
-        set_periodically()
-
-    if get_faiss_resources:
-        set_faiss_resources()
-
-    set_faiss_index()

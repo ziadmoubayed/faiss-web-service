@@ -10,9 +10,8 @@ from src.vectors.vector_utils import VectorUtils
 
 
 class FaissIndex(object):
-    thread_launched = False
-
-    def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path):
+    def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path, redis_host, redis_port, redis_db,
+                 save_index_frequency):
         print("Instantiating of FaissIndex")
         self.d = d
         self.index_input_queue = index_input_queue
@@ -21,6 +20,7 @@ class FaissIndex(object):
         self.lock = Condition()
         self.index_size = 0
         self.last_index_update = 0
+        self.save_index_frequency = save_index_frequency
 
         try:
             self.index = faiss.read_index(path_for_index)
@@ -37,10 +37,8 @@ class FaissIndex(object):
             self.ids_mapping = {}
 
         self.vectros = VectorUtils()
-        self.redis = redis.Redis()
-        if not FaissIndex.thread_launched:
-            self.generate_index()
-            FaissIndex.thread_launched = True
+        self.redis = redis.Redis(redis_host, redis_port, redis_db)
+        self.generate_index()
 
     def id_to_vector(self, id_):
         return self.ids_mapping[id_]
@@ -59,12 +57,13 @@ class FaissIndex(object):
 
     def neighbor_dict(self, id_, score):
         uuid = self.id_to_vector(int(id_))
-        return { 'id': uuid, 'score': float(score), 'text': self.redis.get("uuid_vs_body:"+uuid).decode("utf-8")}
+        return {'id': uuid, 'score': float(score), 'text': self.redis.get("uuid_vs_body:" + uuid).decode("utf-8")}
 
     def __search__(self, ids, vectors, k):
         self.lock.acquire()
+
         def result_dict(id_, vector, neighbors):
-            return { 'id': id_, 'vector': vector.tolist(), 'neighbors': neighbors }
+            return {'id': id_, 'vector': vector.tolist(), 'neighbors': neighbors}
 
         results = []
 
@@ -80,7 +79,6 @@ class FaissIndex(object):
             results.append(result_dict(id_, vector, neighbors_scores))
         self.lock.release()
         return results
-
 
     ########################
 
@@ -106,20 +104,19 @@ class FaissIndex(object):
         time_pass = current_time - self.last_index_update
         self.last_index_update = current_time
         print("Time pass : " + str(time_pass))
-        return 10 < time_pass
+        return self.save_index_frequency < time_pass
 
     def run(self):
         vectors = VectorUtils()
-        r = redis.Redis()
 
         while True:
-            self.get_new_vectors(vectors, r)
+            self.get_new_vectors(vectors)
 
-    def get_new_vectors(self, v, r):
+    def get_new_vectors(self, v):
         index_size_before_update = self.index.ntotal
         new_vectors_counter = index_size_before_update
 
-        value = r.lpop(self.index_input_queue)
+        value = self.redis.lpop(self.index_input_queue)
         while value and not self.time_out():
             data = json.loads(value)
             value_str = data['body']
@@ -127,16 +124,13 @@ class FaissIndex(object):
             vector = v.getVector(value_str)
             self._addToIndex(uuid, vector)
             new_vectors_counter += 1
-            r.set("uuid_vs_body:" + uuid, value_str)
-            value = r.lpop(self.index_input_queue)
+            self.redis.set("uuid_vs_body:" + uuid, value_str)
+            value = self.redis.lpop(self.index_input_queue)
 
         if (index_size_before_update < new_vectors_counter):
             self.saveIndex()
-        else:
-            time.sleep(9)
 
     def generate_index(self):
         print("Launching the thread")
         thread = Thread(target=self.run)
         thread.start()
-
