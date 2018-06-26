@@ -6,7 +6,7 @@ from src.vectors.vector_utils import VectorUtils
 
 app = Flask(__name__)
 app.config.from_object('config')
-app.config.from_pyfile('../resources/faiss_index_local_file.py')
+app.config.from_pyfile('../resources/configurations.py')
 
 app.register_blueprint(InternalBlueprint)
 app.register_blueprint(FaissIndexBlueprint)

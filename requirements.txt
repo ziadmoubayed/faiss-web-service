@@ -1,3 +1,7 @@
 Flask==0.12.2
 uwsgi==2.0.16
 jsonschema==2.6.0
+gensim==3.4.0
+cython==0.28.2
+fasttext==0.1.0
+redis==4.0.9

@@ -1,7 +1,14 @@
 # Gorih extensions
 Before launching APP please provide configuration file with yours parameters
 
-configurations file is situated here -> /faiss-web-service/resources/faiss_index_local_file.py
+configurations file is situated here -> /faiss-web-service/resources/configurations.py
+
+Once application launched, it will try to read files with index and Ids mapping.
+If files was found it will instantiate out of them. Otherwise - it will create new
+faiss index.
+On start of application also will be started asynchronous task for consuming documents
+from redis queue, making vectors out of them and updating faiss index.
+With configured frequency, task will save index and id's mapping to the appropriate files.
 
 # Faiss Web Service
 
@@ -18,11 +25,16 @@ Once the container is running, you should be able to ping the service:
 # Healthcheck
 curl 'localhost:5000/ping'
 
-# Faiss search for ids 1, 2, and 3
+# Faiss search for ids 1, 2, and 3 
+# Is not available for now 
 curl 'localhost:5000/faiss/search' -X POST -d '{"k": 5, "ids": [1, 2, 3]}'
 
 # Faiss search for a vector
 curl 'localhost:5000/faiss/search' -X POST -d '{"k": 5, "vectors": [[54.7, 0.3, 0.6, 0.4, 0.1, 0.7, 0.2, 0.0, 0.6, 0.5, 0.3, 0.2, 0.1, 0.9, 0.3, 0.6, 0.2, 0.9, 0.5, 0.0, 0.9, 0.1, 0.9, 0.1, 0.5, 0.5, 0.8, 0.8, 0.5, 0.2, 0.6, 0.2, 0.2, 0.7, 0.1, 0.7, 0.8, 0.2, 0.9, 0.0, 0.4, 0.4, 0.9, 0.0, 0.6, 0.4, 0.4, 0.6, 0.6, 0.2, 0.5, 0.0, 0.1, 0.6, 0.0, 0.0, 0.4, 0.7, 0.5, 0.7, 0.2, 0.5, 0.5, 0.7]]}'
+
+
+# Faiss search for a similar text
+curl 'localhost:5000/faiss/similar?body=Some serious text here&limit=3' -X GET
 ```
 
 ### Custom config
