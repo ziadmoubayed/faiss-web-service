@@ -19,8 +19,10 @@ blueprint = Blueprint('faiss_index', __name__)
 def record(setup_state):
     manage_faiss_index(
         setup_state.app.config.get('GET_FAISS_RESOURCES'),
-        setup_state.app.config['GET_FAISS_INDEX'],
-        setup_state.app.config['GET_FAISS_ID_TO_VECTOR'],
+        setup_state.app.config.get('INDEX_DIMENSIONS'),
+        setup_state.app.config.get('INDEX_INPUT_QUEUE'),
+        setup_state.app.config.get('INDEX_FILE_PATH'),
+        setup_state.app.config.get('IDS_MAP_FILE_PATH'),
         setup_state.app.config.get('UPDATE_FAISS_AFTER_SECONDS'))
 
 @blueprint.route('/vector', methods=['GET'])
@@ -74,8 +76,9 @@ def search():
         print('Server error', e)
         return 'Server error', 500
 
-def manage_faiss_index(get_faiss_resources, get_faiss_index, get_faiss_id_to_vector, update_after_seconds):
+def manage_faiss_index(get_faiss_resources, d, input_queeu, faiss_index_path, ids_mapping_path, update_after_seconds):
 
+    print("Lanuched faiss_index manage")
     SIGNAL_SET_FAISS_RESOURCES = 1
     SIGNAL_SET_FAISS_INDEX = 2
 
@@ -88,7 +91,7 @@ def manage_faiss_index(get_faiss_resources, get_faiss_index, get_faiss_id_to_vec
 
     def set_faiss_index(signal = None):
         print('Getting Faiss index')
-        blueprint.faiss_index = FaissIndex(get_faiss_index(), get_faiss_id_to_vector())
+        blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path)
 
     def set_periodically():
         if isinstance(update_after_seconds, int):
