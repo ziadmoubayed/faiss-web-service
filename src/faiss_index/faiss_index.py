@@ -10,7 +10,10 @@ from src.vectors.vector_utils import VectorUtils
 
 
 class FaissIndex(object):
+    thread_launched = False
+
     def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path):
+        print("Instantiating of FaissIndex")
         self.d = d
         self.index_input_queue = index_input_queue
         self.path_for_index = path_for_index
@@ -35,8 +38,9 @@ class FaissIndex(object):
 
         self.vectros = VectorUtils()
         self.redis = redis.Redis()
-
-        self.generate_index()
+        if not FaissIndex.thread_launched:
+            self.generate_index()
+            FaissIndex.thread_launched = True
 
     def id_to_vector(self, id_):
         return self.ids_mapping[id_]
@@ -132,6 +136,7 @@ class FaissIndex(object):
             time.sleep(9)
 
     def generate_index(self):
+        print("Launching the thread")
         thread = Thread(target=self.run)
         thread.start()
 

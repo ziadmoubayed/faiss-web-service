@@ -78,7 +78,6 @@ def search():
 
 def manage_faiss_index(get_faiss_resources, d, input_queeu, faiss_index_path, ids_mapping_path, update_after_seconds):
 
-    print("Lanuched faiss_index manage")
     SIGNAL_SET_FAISS_RESOURCES = 1
     SIGNAL_SET_FAISS_INDEX = 2
 

@@ -20,7 +20,7 @@ INDEX_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/index
 
 IDS_MAP_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p"
 
-UPDATE_FAISS_AFTER_SECONDS = 60
+# UPDATE_FAISS_AFTER_SECONDS = 60
 
 FASTTEXT_MODEL_PATH = "/home/gorih/Documents/fastText/klangoo-rus.bin"
 
