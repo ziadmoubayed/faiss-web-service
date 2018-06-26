@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 
 def GET_FAISS_RESOURCES():
     return None

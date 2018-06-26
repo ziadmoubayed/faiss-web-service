@@ -1,15 +1,7 @@
 # Gorih extensions
-Before launching APP please configure and launch prepare_index.py script
-Inside you will find parameters, that must be set correctly:
+Before launching APP please provide configuration file with yours parameters
 
-index_input_queue  <- redis queue from which new documents will come to index
-path_for_index     <- path where application should write faiss index file
-id_to_uuid_path  <- path where application should save 'id <-> uuid' mapping file
-
-Please mention, that these values should match with values, set in config.py implementation
-/home/gorih/PycharmProjects/faiss-web-service/resources/faiss_index_local_file.py
-
-
+configurations file is situated here -> /faiss-web-service/resources/faiss_index_local_file.py
 
 # Faiss Web Service
 
