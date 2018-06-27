@@ -6,7 +6,7 @@ import redis
 import json
 
 from threading import Thread, Condition
-from src.vectors.vector_utils import VectorUtils
+from vectors.vector_utils import VectorUtils
 
 
 class FaissIndex(object):

@@ -1,6 +1,6 @@
 import unittest
 from flask import Flask
-from src.internal.blueprint import blueprint as InternalBlueprint
+from internal.blueprint import blueprint as InternalBlueprint
 
 class TestInternal(unittest.TestCase):
 

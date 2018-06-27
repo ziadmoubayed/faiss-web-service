@@ -4,4 +4,5 @@ jsonschema==2.6.0
 gensim==3.4.0
 cython==0.28.2
 fasttext==0.1.0
-redis==4.0.9
+redis-py==2.10.6
+faiss-cpu==1.2.1

@@ -1,8 +1,8 @@
 from jsonschema import validate, ValidationError
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
-from src.faiss_index.faiss_index import FaissIndex
-from src.vectors.vector_utils import VectorUtils
+from faiss_index.faiss_index import FaissIndex
+from vectors.vector_utils import VectorUtils
 import json
 
 try:

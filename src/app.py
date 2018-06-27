@@ -1,11 +1,11 @@
 from flask import Flask
 
-from src.internal.blueprint import blueprint as InternalBlueprint
-from src.faiss_index.blueprint import blueprint as FaissIndexBlueprint
-from src.vectors.vector_utils import VectorUtils
+from internal.blueprint import blueprint as InternalBlueprint
+from faiss_index.blueprint import blueprint as FaissIndexBlueprint
+from vectors.vector_utils import VectorUtils
 
 app = Flask(__name__)
-app.config.from_object('config')
+# app.config.from_object('config')
 app.config.from_pyfile('../resources/configurations.py')
 
 app.register_blueprint(InternalBlueprint)
