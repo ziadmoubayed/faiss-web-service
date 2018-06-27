@@ -28,6 +28,4 @@ class VectorUtils:
     def getVector(self, body):
         words = gensim.utils.simple_preprocess(body)
         vector = VectorUtils.model.get_sentence_vector(self.cleanText(str(' '.join(words))))
-        print("Vector of : " + body)
-        print(vector)
         return vector

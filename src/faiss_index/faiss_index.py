@@ -91,7 +91,6 @@ class FaissIndex(object):
     def _addToIndex(self, uuid, vector):
         self.lock.acquire()
         print("Index Size is ", self.index.ntotal)
-        print("Setting uuid at ", self.index_size)
         self.ids_mapping[self.index_size] = uuid
         self.index_size += 1
         xb2 = np.zeros(shape=(1, self.d)).astype('float32')
