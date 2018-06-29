@@ -1,4 +1,6 @@
-import fastText as fast
+import io
+import redis
+import numpy as np
 import gensim
 import nltk
 from nltk.corpus import stopwords as stopwords_nltk
@@ -9,16 +11,17 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 class VectorUtils:
+    data = None
     sno = None
     stopwords = None
-    model = None
+
+    def __init__(self):
+        self.redis = redis.Redis()
 
     @staticmethod
     def init(vectors_model_path, language):
-        if not VectorUtils.model:
-            VectorUtils.model = fast.load_model(vectors_model_path)
-            VectorUtils.sno = nltk.stem.SnowballStemmer(language)
-            VectorUtils.stopwords = stopwords_nltk.words(language)
+        VectorUtils.sno = nltk.stem.SnowballStemmer(language)
+        VectorUtils.stopwords = stopwords_nltk.words(language)
 
     def cleanText(self, sentence):
         tokenized_sents = word_tokenize(sentence)
@@ -26,6 +29,25 @@ class VectorUtils:
         return ' '.join(filtered_words)
 
     def getVector(self, body):
-        words = gensim.utils.simple_preprocess(body)
-        vector = VectorUtils.model.get_sentence_vector(self.cleanText(str(' '.join(words))))
-        return vector
+        cleaned_text = self.cleanText(body).lower()
+        words = gensim.utils.simple_preprocess(cleaned_text)
+        vectors = np.zeros(300)
+        for word in words:
+            current_vector = self.words_vecotr(word)
+            vectors = self.sum_vectors(vectors, current_vector)
+
+        return vectors
+
+    def words_vecotr(self, word):
+        w = self.redis.get(word)
+        if w:
+            ar = w.decode('utf-8')
+            ar = ar.replace('[', '').replace(']', '').replace('\'', '').split(', ')
+            return np.array([float(x) for x in ar])
+        return np.zeros(300)
+
+    def sum_vectors(self, a, b):
+        c = np.zeros(a.__len__())
+        for i in range(0, a.__len__()):
+            c[i] = a[i] + b[i]
+        return c

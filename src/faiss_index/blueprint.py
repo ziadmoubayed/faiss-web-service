@@ -39,8 +39,8 @@ def get_similar():
     body = request.args.get('body')
     limit = request.args.get('limit')
     vec_utils = VectorUtils()
-    vector = np.array(vec_utils.getVector(body))
-    vectors = [vector]
+    vectors = np.array(vec_utils.getVector(body))
+
     results_vectors = blueprint.faiss_index.search_by_vectors(vectors, int(limit))
     return jsonify(results_vectors)
 
