@@ -71,14 +71,14 @@ class VectorUtils:
         w = VectorUtils.redis.get(word)
         if w:
             ar = w.decode('utf-8')
-            ar = ar.replace('[', '').replace(']', '').split(',')
+            ar = ar.replace('[', '').replace(']', '').replace('\'', '').split(',')
             return np.array([float(x) for x in ar])
 
         log.debug("Word ' %s ' was not found in vocabulary." % word)
         try:
             new_words_vector = self._get_unknown_word_vector(word)
             VectorUtils.redis.set(word, new_words_vector)
-            new_words_vector = new_words_vector.decode('utf-8').replace('[', '').replace(']', '').split(',')
+            new_words_vector = new_words_vector.decode('utf-8').replace('[', '').replace(']', '').replace('\'', '').split(',')
             return np.array([float(x) for x in new_words_vector])
         except:
             log.info("Failed to call API for getting vector for word :' %s '." % word)
