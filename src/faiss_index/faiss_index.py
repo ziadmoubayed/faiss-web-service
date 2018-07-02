@@ -14,7 +14,7 @@ log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
 class FaissIndex(object):
     def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path, redis_host, redis_port, redis_db,
-                 save_index_frequency, should_pesist_bodies):
+                 save_index_frequency, should_persist_bodies):
         log.info("Instantiating of FaissIndex object.")
         self.d = d
         self.index_input_queue = index_input_queue
@@ -24,7 +24,7 @@ class FaissIndex(object):
         self.index_size = 0
         self.last_index_update = 0
         self.save_index_frequency = save_index_frequency
-        self.should_persist_bodies = should_pesist_bodies
+        self.should_persist_bodies = should_persist_bodies
 
         try:
             self.index = faiss.read_index(path_for_index)
@@ -105,8 +105,10 @@ class FaissIndex(object):
     def time_out(self):
         current_time = time.time()
         time_pass = current_time - self.last_index_update
-        self.last_index_update = current_time
-        return self.save_index_frequency < time_pass
+        if self.save_index_frequency < time_pass:
+            self.last_index_update = current_time
+            return True
+        return False
 
     def run(self):
         vectors = VectorUtils()

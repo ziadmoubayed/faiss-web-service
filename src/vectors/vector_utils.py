@@ -1,6 +1,7 @@
 import io
 import redis
 import numpy as np
+import string
 import gensim
 import nltk
 import logging as log
@@ -15,35 +16,62 @@ nltk.download('punkt')
 nltk.download('stopwords')
 
 
+def load_vocab(filepath):
+    import redis
+    import logging as log
+    import sys
+    log.basicConfig(stream=sys.stdout, level=log.DEBUG)
+    redis = redis.Redis()
+    with open(filepath) as fp:
+        line = fp.readline()
+        cnt = 1
+        while line:
+            tokens = line.rstrip().split(' ')
+            log.debug("Saving word ' %s ' to vocabulary. Loaded %d" % (tokens[0], cnt))
+            redis.set(tokens[0], tokens[1:])
+            cnt += 1
+
+    log.info("Finished vocabulary loading. Loaded %d" % cnt)
+
 class VectorUtils:
     data = None
     language = "english"
     redis = None
 
     def __init__(self, redis_host='localhost', redis_port=6379, redis_db=0):
-        if not VectorUtils.redis: VectorUtils.redis = redis.Redis(redis_host, redis_port, redis_db)
+        if not VectorUtils.redis:
+            VectorUtils.redis = redis.Redis(redis_host, redis_port, redis_db)
         self.sno = nltk.stem.SnowballStemmer(VectorUtils.language)
         self.stopwords = stopwords_nltk.words(VectorUtils.language)
+        self.translator = str.maketrans('', '', string.punctuation)
 
-    @classmethod
-    def load_vocabulary(cls, vectors_model_path, redis_host='localhost', redis_port=6379, redis_db=0):
+    @staticmethod
+    def load_vocabulary(vectors_model_path, redis_host='localhost', redis_port=6379, redis_db=0):
         log.info("Started loading of vocabulary.")
         VectorUtils.redis = redis.Redis(redis_host, redis_port, redis_db)
-        fin = io.open(vectors_model_path, 'r', encoding='utf-8',
-                      newline='\n', errors='ignore')
-        for line in fin:
-            tokens = line.rstrip().split(' ')
-            log.debug("Saving word ' %s ' to vocabulary" % tokens[0])
-            VectorUtils.redis.set(tokens[0], tokens[1:])
+        with open(vectors_model_path) as fp:
+            line = fp.readline()
+            cnt = 1
+            while line:
+                tokens = line.rstrip().split(' ')
+                word = tokens[0]
+                log.debug("Saving word ' %s ' to vocabulary. Loaded %d" % (word, cnt))
+                redis.set(word, tokens[1:])
+                cnt += 1
 
-    def cleanText(self, sentence):
-        tokenized_sents = word_tokenize(sentence)
-        filtered_words = [self.sno.stem(word) for word in tokenized_sents if word not in self.stopwords]
-        return ' '.join(filtered_words)
+        log.info("Finished vocabulary loading. Loaded %d" % counter)
+
+    def nlp_clean(self, sentence):
+        string_name = sentence.translate(self.translator)
+        new_str = string_name.lower()
+        # print(sentence)
+        words = word_tokenize(new_str)
+        # print(words)
+        words = list(set(words).difference(self.stopwords))
+        return words
 
     def getVector(self, body):
-        cleaned_text = self.cleanText(body).lower()
-        words = gensim.utils.simple_preprocess(cleaned_text)
+        words = self.nlp_clean(body)
         vectors = np.zeros(300)
         for word in words:
             current_vector = self._words_vector(word)

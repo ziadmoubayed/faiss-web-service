@@ -1,8 +1,8 @@
-INDEX_FILE_PATH = "/fws/faiss-web-service/resources/index"
+INDEX_FILE_PATH = "/root/fws/faiss-web-service/resources/index"
 
-IDS_MAP_FILE_PATH = "/fws/faiss-web-service/resources/ids_vectors.p"
+IDS_MAP_FILE_PATH = "/root/fws/faiss-web-service/resources/ids_vectors.p"
 
-WORDS_VECTORS_FILE_PATH = "/fws/fast_text_models/wiki_vec"
+WORDS_VECTORS_FILE_PATH = "/root/fws/fast_text_models/wiki_vec"
 
 LANGUAGE = "english"
 
