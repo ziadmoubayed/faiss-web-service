@@ -5,6 +5,8 @@ import sys
 import nltk
 import numpy as np
 import redis
+import urllib.request
+
 from nltk.corpus import stopwords as stopwords_nltk
 from nltk.tokenize import word_tokenize
 
@@ -45,12 +47,12 @@ class VectorUtils:
     def nlp_clean(self, sentence):
         string_name = sentence.translate(self.translator)
         new_str = string_name.lower()
-        # print(sentence)
         words = word_tokenize(new_str)
-        # print(words)
         words = list(set(words).difference(self.stopwords))
         return words
 
+    # gets vector of each word in text
+    # and returns sum of all vectors
     def getVector(self, body):
         words = self.nlp_clean(body)
         vectors = np.zeros(300)
@@ -60,13 +62,32 @@ class VectorUtils:
 
         return vectors
 
+    # checks for word in vocabulary
+    # if word was found - returns it's vector
+    # otherwise makes http call to API to get vector, saves result to vocabulary
+    # and returns vector
+    # if call to API was failed, vector filled with zeros will be returned
     def _words_vector(self, word):
         w = VectorUtils.redis.get(word)
         if w:
             ar = w.decode('utf-8')
-            ar = ar.replace('[', '').replace(']', '').replace('\'', '').split(', ')
+            ar = ar.replace('[', '').replace(']', '').split(',')
             return np.array([float(x) for x in ar])
+
+        log.debug("Word ' %s ' was not found in vocabulary." % word)
+        try:
+            new_words_vector = self._get_unknown_word_vector(word)
+            VectorUtils.redis.set(word, new_words_vector)
+            new_words_vector = new_words_vector.decode('utf-8').replace('[', '').replace(']', '').split(',')
+            return np.array([float(x) for x in new_words_vector])
+        except:
+            log.info("Failed to call API for getting vector for word :' %s '." % word)
+
         return np.zeros(300)
+
+    def _get_unknown_word_vector(self, word):
+        contents = urllib.request.urlopen('http://82.192.87.234:8084/vector/array?text=%s' % word).read()
+        return contents
 
     def sum_vectors(self, a, b):
         c = np.zeros(a.__len__())
