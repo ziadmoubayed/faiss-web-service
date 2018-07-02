@@ -2,7 +2,7 @@ INDEX_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/index
 
 IDS_MAP_FILE_PATH = "/home/gorih/PycharmProjects/faiss-web-service/resources/ids_vectors.p"
 
-FASTTEXT_MODEL_PATH = "/home/gorih/Documents/fastText/wiki.en/wiki.en.vec"
+WORDS_VECTORS_FILE_PATH = "/home/gorih/Documents/fastText/wiki.en/wiki.en.vec"
 
 LANGUAGE = "english"
 
@@ -21,3 +21,7 @@ INDEX_WRITES_FREQUENCY_SEC = 60
 APP_HOST = "localhost"
 
 APP_PORT = 5000
+
+LOAD_VOCABULARY = True
+
+PERSIST_BODIES = True

@@ -13,12 +13,13 @@ app.register_blueprint(FaissIndexBlueprint)
 
 
 def initiate_application(app):
-    print("Initiating protocol launched")
-
     # Loads and initiates fasttext's model for transforming documents to vectors
-    model_path = app.config.get('FASTTEXT_MODEL_PATH')
-    language = app.config.get('LANGUAGE')
-    VectorUtils.init(model_path, language)
+    model_path = app.config.get('WORDS_VECTORS_FILE_PATH')
+    VectorUtils.language = app.config.get('LANGUAGE')
+    should_load_vocabulary = app.config.get('LOAD_VOCABULARY')
+
+    if should_load_vocabulary:
+        VectorUtils.load_vocabulary(model_path)
 
 if __name__ == "__main__":
     initiate_application(app)

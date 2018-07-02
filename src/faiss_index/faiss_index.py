@@ -4,6 +4,7 @@ import time
 import pickle
 import redis
 import json
+import logging as log
 
 from threading import Thread, Condition
 from vectors.vector_utils import VectorUtils
@@ -11,8 +12,8 @@ from vectors.vector_utils import VectorUtils
 
 class FaissIndex(object):
     def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path, redis_host, redis_port, redis_db,
-                 save_index_frequency):
-        print("Instantiating of FaissIndex")
+                 save_index_frequency, should_pesist_bodies):
+        log.info("Instantiating of FaissIndex object.")
         self.d = d
         self.index_input_queue = index_input_queue
         self.path_for_index = path_for_index
@@ -21,6 +22,7 @@ class FaissIndex(object):
         self.index_size = 0
         self.last_index_update = 0
         self.save_index_frequency = save_index_frequency
+        self.should_persist_bodies = should_pesist_bodies
 
         try:
             self.index = faiss.read_index(path_for_index)
@@ -40,11 +42,11 @@ class FaissIndex(object):
         self.redis = redis.Redis(redis_host, redis_port, redis_db)
         self.generate_index()
 
-    def id_to_vector(self, id_):
+    def id_to_uuid(self, id_):
         return self.ids_mapping[id_]
 
     def search_by_ids(self, ids, k):
-        vectors = [self.id_to_vector(id_) for id_ in ids]
+        vectors = [self.id_to_uuid(id_) for id_ in ids]
         results = self.__search__(ids, vectors, k + 1)
 
         return results
@@ -56,7 +58,7 @@ class FaissIndex(object):
         return results
 
     def neighbor_dict(self, id_, score):
-        uuid = self.id_to_vector(int(id_))
+        uuid = self.id_to_uuid(int(id_))
         return {'id': uuid, 'score': float(score), 'text': self.redis.get("uuid_vs_body:" + uuid).decode("utf-8")}
 
     def __search__(self, ids, vectors, k):
@@ -83,14 +85,14 @@ class FaissIndex(object):
     ########################
 
     def saveIndex(self):
-        print("Saving the index")
+        log.info("Saving the index.")
         faiss.write_index(self.index, self.path_for_index)
         with open(self.id_to_uuid_file_path, 'wb') as handle:
             pickle.dump(self.ids_mapping, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     def _addToIndex(self, uuid, vector):
         self.lock.acquire()
-        print("Index Size is ", self.index.ntotal)
+        log.debug("Index Size is %s" % self.index.ntotal)
         self.ids_mapping[self.index_size] = uuid
         self.index_size += 1
         xb2 = np.zeros(shape=(1, self.d)).astype('float32')
@@ -102,7 +104,6 @@ class FaissIndex(object):
         current_time = time.time()
         time_pass = current_time - self.last_index_update
         self.last_index_update = current_time
-        print("Time pass : " + str(time_pass))
         return self.save_index_frequency < time_pass
 
     def run(self):
@@ -123,13 +124,15 @@ class FaissIndex(object):
             vector = v.getVector(value_str)
             self._addToIndex(uuid, vector)
             new_vectors_counter += 1
-            self.redis.set("uuid_vs_body:" + uuid, value_str)
+
+            if self.should_persist_bodies: self.redis.set("uuid_vs_body:" + uuid, value_str)
+
             value = self.redis.lpop(self.index_input_queue)
 
         if (index_size_before_update < new_vectors_counter):
             self.saveIndex()
 
     def generate_index(self):
-        print("Launching the thread")
+        log.info("Launching index update thread.")
         thread = Thread(target=self.run)
         thread.start()

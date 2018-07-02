@@ -4,14 +4,7 @@ from werkzeug.exceptions import BadRequest
 from faiss_index.faiss_index import FaissIndex
 from vectors.vector_utils import VectorUtils
 import json
-
-try:
-    import uwsgi
-except ImportError:
-    print('Failed to load python module uwsgi')
-    print('Periodic faiss index updates isn\'t enabled')
-
-    uwsgi = None
+import logging as log
 
 blueprint = Blueprint('faiss_index', __name__)
 
@@ -25,7 +18,8 @@ def record(setup_state):
         setup_state.app.config.get('REDIS_HOST'),
         setup_state.app.config.get('REDIS_PORT'),
         setup_state.app.config.get('REDIS_DB'),
-        setup_state.app.config.get('INDEX_WRITES_FREQUENCY_SEC'))
+        setup_state.app.config.get('INDEX_WRITES_FREQUENCY_SEC'),
+        setup_state.app.config.get('PERSIST_BODIES'))
 
 @blueprint.route('/vector', methods=['GET'])
 def get_vector():
@@ -39,8 +33,8 @@ def get_similar():
     body = request.args.get('body')
     limit = request.args.get('limit')
     vec_utils = VectorUtils()
-    vectors = np.array(vec_utils.getVector(body))
-
+    vector = np.array(vec_utils.getVector(body))
+    vectors = [vector]
     results_vectors = blueprint.faiss_index.search_by_vectors(vectors, int(limit))
     return jsonify(results_vectors)
 
@@ -71,13 +65,13 @@ def search():
         return jsonify(results_ids + results_vectors)
 
     except (BadRequest, ValidationError) as e:
-        print('Bad request', e)
+        log.error('Bad request', e)
         return 'Bad request', 400
 
     except Exception as e:
-        print('Server error', e)
+        log.error('Server error', e)
         return 'Server error', 500
 
-def manage_faiss_index(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency):
-    blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency)
+def manage_faiss_index(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency, should_persist_bodies):
+    blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency, should_persist_bodies)
 

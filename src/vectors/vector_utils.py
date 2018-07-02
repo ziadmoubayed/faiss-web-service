@@ -3,6 +3,7 @@ import redis
 import numpy as np
 import gensim
 import nltk
+import logging as log
 from nltk.corpus import stopwords as stopwords_nltk
 from nltk.tokenize import word_tokenize
 
@@ -10,22 +11,30 @@ nltk.download('wordnet')
 nltk.download('punkt')
 nltk.download('stopwords')
 
+
 class VectorUtils:
     data = None
-    sno = None
-    stopwords = None
+    language = None
 
-    def __init__(self):
-        self.redis = redis.Redis()
+    def __init__(self, redis_host='localhost', redis_port=6379, redis_db=0):
+        if not VectorUtils.redis: VectorUtils.redis = redis.Redis(redis_host, redis_port, redis_db)
+        self.sno = nltk.stem.SnowballStemmer(VectorUtils.language)
+        self.stopwords = stopwords_nltk.words(VectorUtils.language)
 
-    @staticmethod
-    def init(vectors_model_path, language):
-        VectorUtils.sno = nltk.stem.SnowballStemmer(language)
-        VectorUtils.stopwords = stopwords_nltk.words(language)
+    @classmethod
+    def load_vocabulary(cls, vectors_model_path, redis_host='localhost', redis_port=6379, redis_db=0):
+        log.info("Started loading of vocabulary.")
+        VectorUtils.redis = redis.Redis(redis_host, redis_port, redis_db)
+        fin = io.open(vectors_model_path, 'r', encoding='utf-8',
+                      newline='\n', errors='ignore')
+        for line in fin:
+            tokens = line.rstrip().split(' ')
+            log.debug("Saving word ' %s ' to vocabulary" % tokens[0])
+            VectorUtils.redis.set(tokens[0], tokens[1:])
 
     def cleanText(self, sentence):
         tokenized_sents = word_tokenize(sentence)
-        filtered_words = [VectorUtils.sno.stem(word) for word in tokenized_sents if word not in VectorUtils.stopwords]
+        filtered_words = [self.sno.stem(word) for word in tokenized_sents if word not in self.stopwords]
         return ' '.join(filtered_words)
 
     def getVector(self, body):
@@ -33,13 +42,13 @@ class VectorUtils:
         words = gensim.utils.simple_preprocess(cleaned_text)
         vectors = np.zeros(300)
         for word in words:
-            current_vector = self.words_vecotr(word)
+            current_vector = self._words_vector(word)
             vectors = self.sum_vectors(vectors, current_vector)
 
         return vectors
 
-    def words_vecotr(self, word):
-        w = self.redis.get(word)
+    def _words_vector(self, word):
+        w = VectorUtils.redis.get(word)
         if w:
             ar = w.decode('utf-8')
             ar = ar.replace('[', '').replace(']', '').replace('\'', '').split(', ')
