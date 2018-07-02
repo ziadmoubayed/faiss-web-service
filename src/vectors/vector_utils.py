@@ -1,11 +1,10 @@
-import io
-import redis
-import numpy as np
-import string
-import gensim
-import nltk
 import logging as log
+import string
 import sys
+
+import nltk
+import numpy as np
+import redis
 from nltk.corpus import stopwords as stopwords_nltk
 from nltk.tokenize import word_tokenize
 
@@ -14,24 +13,6 @@ log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 nltk.download('wordnet')
 nltk.download('punkt')
 nltk.download('stopwords')
-
-
-def load_vocab(filepath):
-    import redis
-    import logging as log
-    import sys
-    log.basicConfig(stream=sys.stdout, level=log.DEBUG)
-    redis = redis.Redis()
-    with open(filepath) as fp:
-        line = fp.readline()
-        cnt = 1
-        while line:
-            tokens = line.rstrip().split(' ')
-            log.debug("Saving word ' %s ' to vocabulary. Loaded %d" % (tokens[0], cnt))
-            redis.set(tokens[0], tokens[1:])
-            cnt += 1
-
-    log.info("Finished vocabulary loading. Loaded %d" % cnt)
 
 class VectorUtils:
     data = None
@@ -56,10 +37,10 @@ class VectorUtils:
                 tokens = line.rstrip().split(' ')
                 word = tokens[0]
                 log.debug("Saving word ' %s ' to vocabulary. Loaded %d" % (word, cnt))
-                redis.set(word, tokens[1:])
+                VectorUtils.redis.set(word, tokens[1:])
                 cnt += 1
 
-        log.info("Finished vocabulary loading. Loaded %d" % counter)
+        log.info("Finished vocabulary loading. Loaded %d" % cnt)
 
     def nlp_clean(self, sentence):
         string_name = sentence.translate(self.translator)
