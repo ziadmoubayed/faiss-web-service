@@ -4,8 +4,11 @@ import numpy as np
 import gensim
 import nltk
 import logging as log
+import sys
 from nltk.corpus import stopwords as stopwords_nltk
 from nltk.tokenize import word_tokenize
+
+log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
 nltk.download('wordnet')
 nltk.download('punkt')
@@ -14,7 +17,7 @@ nltk.download('stopwords')
 
 class VectorUtils:
     data = None
-    language = None
+    language = "english"
     redis = None
 
     def __init__(self, redis_host='localhost', redis_port=6379, redis_db=0):

@@ -5,10 +5,12 @@ import pickle
 import redis
 import json
 import logging as log
+import sys
 
 from threading import Thread, Condition
 from vectors.vector_utils import VectorUtils
 
+log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
 class FaissIndex(object):
     def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path, redis_host, redis_port, redis_db,

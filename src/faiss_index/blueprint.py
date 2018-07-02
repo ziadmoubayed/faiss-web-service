@@ -5,6 +5,9 @@ from faiss_index.faiss_index import FaissIndex
 from vectors.vector_utils import VectorUtils
 import json
 import logging as log
+import sys
+
+log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
 blueprint = Blueprint('faiss_index', __name__)
 
