@@ -1,20 +1,19 @@
-import faiss
-import numpy as np
-import time
-import pickle
-import redis
 import json
 import logging as log
+import pickle
 import sys
-
+import time
 from threading import Thread, Condition
-from vectors.vector_utils import VectorUtils
+
+import faiss
+import numpy as np
+import redis
 
 log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
 class FaissIndex(object):
     def __init__(self, d, index_input_queue, path_for_index, id_to_uuid_file_path, redis_host, redis_port, redis_db,
-                 save_index_frequency, should_persist_bodies):
+                 save_index_frequency, should_persist_bodies, vector_utils):
         log.info("Instantiating of FaissIndex object.")
         self.d = d
         self.index_input_queue = index_input_queue
@@ -40,7 +39,7 @@ class FaissIndex(object):
         except:
             self.ids_mapping = {}
 
-        self.vectros = VectorUtils()
+        self.vectros = vector_utils
         self.redis = redis.Redis(redis_host, redis_port, redis_db)
         self.generate_index()
 
@@ -111,12 +110,10 @@ class FaissIndex(object):
         return False
 
     def run(self):
-        vectors = VectorUtils()
-
         while True:
-            self.get_new_vectors(vectors)
+            self.get_new_vectors()
 
-    def get_new_vectors(self, v):
+    def get_new_vectors(self):
         index_size_before_update = self.index.ntotal
         new_vectors_counter = index_size_before_update
 
@@ -125,7 +122,7 @@ class FaissIndex(object):
             data = json.loads(value)
             value_str = data['body']
             uuid = data['uuid']
-            vector = v.getVector(value_str)
+            vector = self.vectros.getVector(value_str)
             self._addToIndex(uuid, vector)
             new_vectors_counter += 1
 

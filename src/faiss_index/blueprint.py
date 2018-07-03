@@ -13,21 +13,23 @@ blueprint = Blueprint('faiss_index', __name__)
 
 @blueprint.record_once
 def record(setup_state):
+    redis_host = setup_state.app.config.get('REDIS_HOST')
+    redis_port = setup_state.app.config.get('REDIS_PORT')
+    redis_db = setup_state.app.config.get('REDIS_DB')
+    vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
     manage_faiss_index(
         setup_state.app.config.get('INDEX_DIMENSIONS'),
         setup_state.app.config.get('INDEX_INPUT_QUEUE'),
         setup_state.app.config.get('INDEX_FILE_PATH'),
         setup_state.app.config.get('IDS_MAP_FILE_PATH'),
-        setup_state.app.config.get('REDIS_HOST'),
-        setup_state.app.config.get('REDIS_PORT'),
-        setup_state.app.config.get('REDIS_DB'),
+        redis_host, redis_port, redis_db, vector_utills,
         setup_state.app.config.get('INDEX_WRITES_FREQUENCY_SEC'),
         setup_state.app.config.get('PERSIST_BODIES'))
 
 @blueprint.route('/vector', methods=['GET'])
 def get_vector():
     body = request.args.get('body')
-    return json.dumps(VectorUtils().getVector(body).tolist())
+    return json.dumps(blueprint.vector_utils.getVector(body).tolist())
 
 
 @blueprint.route('/faiss/similar', methods=['GET'])
@@ -35,8 +37,7 @@ def get_similar():
     import numpy as np
     body = request.args.get('body')
     limit = request.args.get('limit')
-    vec_utils = VectorUtils()
-    vector = np.array(vec_utils.getVector(body))
+    vector = np.array(blueprint.vector_utils.getVector(body))
     vectors = [vector]
     results_vectors = blueprint.faiss_index.search_by_vectors(vectors, int(limit))
     return jsonify(results_vectors)
@@ -75,6 +76,7 @@ def search():
         log.error('Server error', e)
         return 'Server error', 500
 
-def manage_faiss_index(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency, should_persist_bodies):
-    blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency, should_persist_bodies)
+def manage_faiss_index(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, vector_utils, save_index_frequency, should_persist_bodies):
+    blueprint.faiss_index = FaissIndex(d, input_queeu, faiss_index_path, ids_mapping_path, redis_host, redis_port, redis_db, save_index_frequency, should_persist_bodies, vector_utils)
+    blueprint.vector_utils = vector_utils
 
