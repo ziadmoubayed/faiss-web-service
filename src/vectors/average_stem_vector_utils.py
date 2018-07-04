@@ -31,7 +31,8 @@ class VectorUtils:
         string_name = sentence.translate(self.translator)
         new_str = string_name.lower()
         words = word_tokenize(new_str)
-        words = list(set(words).difference(self.stopwords))
+        stemmed_words = [self.sno.stem(word) for word in words]
+        words = list(set(stemmed_words).difference(self.stopwords))
         return words
 
     # gets vector of each word in text

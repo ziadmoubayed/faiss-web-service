@@ -2,7 +2,7 @@ from jsonschema import validate, ValidationError
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 from faiss_index.faiss_index import FaissIndex
-from vectors.vector_utils import VectorUtils
+from vectors.sentence_vector_utils import VectorUtils
 import json
 import logging as log
 import sys
