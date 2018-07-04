@@ -3,8 +3,12 @@ Before launching APP please provide configuration file with yours parameters
 
 configurations file is situated here -> /faiss-web-service/resources/configurations.py
 
+For testing purpose there are few versions of vector_utils files in /faiss-web-service/src/vectors/.
+Each version uses different way of making vectors of documents
+To switch between files: change line 5 in /faiss_index/blueprint.py 
+
 Once application launched, it will try to read files with index and Ids mapping.
-If files was found it will instantiate out of them. Otherwise - it will create new
+If files was found it will instantiate index using them. Otherwise - it will create new
 faiss index.
 On start of application also will be started asynchronous task for consuming documents
 from redis queue, making vectors out of them and updating faiss index.
