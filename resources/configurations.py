@@ -12,6 +12,7 @@ VOCABULARY_IN_MEMORY = False
 WORDS_VECTORS_FILE_PATH = "/root/fws/fast_text_models/wiki_vec"
 
 # set LOAD_DOC2VEC_MODEL to True if you want to use doc2vec model for getting vector of documents
+# if this model will not be loaded application makes API calls, to get vector for each document.
 LOAD_DOC2VEC_MODEL = False
 DOC2VEC_MODEL_FILE_PATH = ""
 

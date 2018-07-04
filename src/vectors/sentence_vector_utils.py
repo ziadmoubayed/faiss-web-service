@@ -7,6 +7,7 @@ import numpy as np
 import gensim
 import nltk
 from nltk.corpus import stopwords as stopwords_nltk
+from vocabulary.doc2vec_model import Doc2VecModelKeeper
 
 log.basicConfig(stream=sys.stdout, level=log.DEBUG)
 
@@ -31,8 +32,15 @@ class VectorUtils:
             ar = vector.decode('utf-8')
             ar = ar.replace('[', '').replace(']', '').replace('\'', '').split(',')
             return np.array([float(x) for x in ar])
-        vector = self._get_sentence_vector(self.nlp_clean(body))
-        return parse_to_array(vector)
+
+        cleaned = self.nlp_clean(body)
+
+        if Doc2VecModelKeeper.model:
+            vector = Doc2VecModelKeeper.model.get_sentence_vector(cleaned)
+        else:
+            vector = parse_to_array(self._get_sentence_vector(cleaned))
+
+        return vector
 
     def _get_sentence_vector(self, sentence):
         encoded_sentence = urllib.parse.quote(sentence, safe='')
