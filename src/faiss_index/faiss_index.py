@@ -60,7 +60,7 @@ class FaissIndex(object):
 
     def neighbor_dict(self, id_, score):
         uuid = self.id_to_uuid(int(id_))
-        return {'id': uuid, 'score': float(score), 'text': self.redis.get("uuid_vs_body:" + uuid).decode("utf-8")}
+        return {'id': uuid, 'score': float(score), 'text': self.redis.hget("uuid_vs_body", uuid).decode("utf-8")}
 
     def __search__(self, ids, vectors, k):
         self.lock.acquire()
@@ -126,7 +126,7 @@ class FaissIndex(object):
             self._addToIndex(uuid, vector)
             new_vectors_counter += 1
 
-            if self.should_persist_bodies: self.redis.set("uuid_vs_body:" + uuid, value_str)
+            if self.should_persist_bodies: self.redis.hset("uuid_vs_body", uuid, value_str)
 
             value = self.redis.lpop(self.index_input_queue)
 
