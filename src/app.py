@@ -12,7 +12,7 @@ def initiate_application(app):
     model_path = app.config.get('WORDS_VECTORS_FILE_PATH')
 
     if vector_utils_type == 'inferSent':
-        InferSentModelKeeper.init(app.config.get('INFERSENT_ENCODER_FILE_PATH'), model_path)
+        InferSentModelKeeper.init(app.config.get('INFERSENT_ENCODER_FILE_PATH'), model_path, app.config.get('INFERSENT_WORDS_VOCABULARY_INITIAL_SIZE'))
     elif vector_utils_type == 'average':
         should_load_vocabulary = app.config.get('LOAD_VOCABULARY')
         vocabulary_in_memory = app.config.get('VOCABULARY_IN_MEMORY')

@@ -25,6 +25,8 @@ DOC2VEC_MODEL_FILE_PATH = ""
 #           --- inferSent Vector Utils params ---
 # set a path to the inferSent pre-trained model file
 INFERSENT_ENCODER_FILE_PATH = "/home/gorih/Documents/InferSent/InferSent/encoder/infersent2.pkl"
+# set number of most common words, that will be loaded to inferSent vocabulary from word2vec file
+INFERSENT_WORDS_VOCABULARY_INITIAL_SIZE = 100000
 
 # language of incoming text's
 LANGUAGE = "english"
