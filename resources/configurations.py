@@ -18,7 +18,7 @@ DOC2VEC_MODEL_FILE_PATH = ""
 
 # language of incoming text's
 LANGUAGE = "english"
-INDEX_DIMENSIONS = 300
+INDEX_DIMENSIONS = 4096
 
 # queue from which index will be filled
 INDEX_INPUT_QUEUE = "doc2vector"

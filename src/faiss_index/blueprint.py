@@ -2,7 +2,7 @@ from jsonschema import validate, ValidationError
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 from faiss_index.faiss_index import FaissIndex
-from vectors.sentence_vector_utils import VectorUtils # u can use different versions of VectorUtils from vectors package
+from vectors.infersent_vector_utils import VectorUtils # u can use different versions of VectorUtils from vectors package
 import json
 import logging as log
 import sys
@@ -35,10 +35,14 @@ def get_vector():
 @blueprint.route('/faiss/similar', methods=['GET'])
 def get_similar():
     import numpy as np
+    import time
     body = request.args.get('body')
     limit = request.args.get('limit')
+    start_time = int(round(time.time() * 1000))
     vector = np.array(blueprint.vector_utils.getVector(body))
     vectors = [vector]
+    time_took = int(round(time.time() * 1000)) - start_time
+    log.info("Text was embedded in %d millis ", time_took)
     results_vectors = blueprint.faiss_index.search_by_vectors(vectors, int(limit))
     return jsonify(results_vectors)
 

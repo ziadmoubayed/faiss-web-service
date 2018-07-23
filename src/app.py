@@ -4,13 +4,7 @@ from internal.blueprint import blueprint as InternalBlueprint
 from faiss_index.blueprint import blueprint as FaissIndexBlueprint
 from vocabulary.vocabulary import VocabularyKeeper
 from vocabulary.doc2vec_model import Doc2VecModelKeeper
-
-app = Flask(__name__)
-app.config.from_pyfile('../resources/configurations.py')
-
-app.register_blueprint(InternalBlueprint)
-app.register_blueprint(FaissIndexBlueprint)
-
+from vocabulary.infer_sent import InferSentModelKeeper
 
 def initiate_application(app):
     # Loads and initiates fasttext's model for transforming documents to vectors
@@ -27,9 +21,18 @@ def initiate_application(app):
 
     if load_doc2vec_model:
         Doc2VecModelKeeper.init(doc2vec_model_path)
+    # InferSentModelKeeper.init("/home/gorih/Documents/InferSent/InferSent/encoder/infersent2.pkl", "/home/gorih/Documents/InferSent/InferSent/dataset/fastText/crawl-300d-2M.vec")
 
+
+
+app = Flask(__name__)
+app.config.from_pyfile('../resources/configurations.py')
 
 initiate_application(app)
+
+
+app.register_blueprint(InternalBlueprint)
+app.register_blueprint(FaissIndexBlueprint)
 
 if __name__ == "__main__":
     app.run(app.config.get("APP_HOST"), app.config.get('APP_PORT'))
