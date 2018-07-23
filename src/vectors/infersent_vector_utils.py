@@ -31,6 +31,7 @@ class VectorUtils:
 
     def getVector(self, body):
         cleaned = self.nlp_clean(body)
+        InferSentModelKeeper.model.update_vocab([body])
         vector = InferSentModelKeeper.model.encode([cleaned])[0]
 
         return vector

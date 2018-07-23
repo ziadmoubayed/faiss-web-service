@@ -8,20 +8,23 @@ from vocabulary.infer_sent import InferSentModelKeeper
 
 def initiate_application(app):
     # Loads and initiates fasttext's model for transforming documents to vectors
+    vector_utils_type = app.config.get('VECTOR_UTILS_TYPE')
     model_path = app.config.get('WORDS_VECTORS_FILE_PATH')
-    should_load_vocabulary = app.config.get('LOAD_VOCABULARY')
-    vocabulary_in_memory = app.config.get('VOCABULARY_IN_MEMORY')
-    redis_host = app.config.get('REDIS_HOST')
-    redis_port = app.config.get('REDIS_PORT')
-    redis_db = app.config.get('REDIS_DB')
-    load_doc2vec_model = app.config.get('LOAD_DOC2VEC_MODEL')
-    doc2vec_model_path = app.config.get('DOC2VEC_MODEL_FILE_PATH')
 
-    VocabularyKeeper.init(should_load_vocabulary, vocabulary_in_memory, model_path, redis_host, redis_port, redis_db)
-
-    if load_doc2vec_model:
-        Doc2VecModelKeeper.init(doc2vec_model_path)
-    # InferSentModelKeeper.init("/home/gorih/Documents/InferSent/InferSent/encoder/infersent2.pkl", "/home/gorih/Documents/InferSent/InferSent/dataset/fastText/crawl-300d-2M.vec")
+    if vector_utils_type == 'inferSent':
+        InferSentModelKeeper.init(app.config.get('INFERSENT_ENCODER_FILE_PATH'), model_path)
+    elif vector_utils_type == 'average':
+        should_load_vocabulary = app.config.get('LOAD_VOCABULARY')
+        vocabulary_in_memory = app.config.get('VOCABULARY_IN_MEMORY')
+        redis_host = app.config.get('REDIS_HOST')
+        redis_port = app.config.get('REDIS_PORT')
+        redis_db = app.config.get('REDIS_DB')
+        VocabularyKeeper.init(should_load_vocabulary, vocabulary_in_memory, model_path, redis_host, redis_port, redis_db)
+    elif vector_utils_type == 'sentence':
+        load_doc2vec_model = app.config.get('LOAD_DOC2VEC_MODEL')
+        doc2vec_model_path = app.config.get('DOC2VEC_MODEL_FILE_PATH')
+        if load_doc2vec_model:
+            Doc2VecModelKeeper.init(doc2vec_model_path)
 
 
 

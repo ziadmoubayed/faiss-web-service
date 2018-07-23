@@ -2,7 +2,7 @@ from jsonschema import validate, ValidationError
 from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 from faiss_index.faiss_index import FaissIndex
-from vectors.infersent_vector_utils import VectorUtils # u can use different versions of VectorUtils from vectors package
+# from vectors.infersent_vector_utils import VectorUtils # u can use different versions of VectorUtils from vectors package
 import json
 import logging as log
 import sys
@@ -16,9 +16,28 @@ def record(setup_state):
     redis_host = setup_state.app.config.get('REDIS_HOST')
     redis_port = setup_state.app.config.get('REDIS_PORT')
     redis_db = setup_state.app.config.get('REDIS_DB')
-    vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+    vec_ut_type = setup_state.app.config.get('VECTOR_UTILS_TYPE')
+    index_dimensions = setup_state.app.config.get('INDEX_DIMENSIONS')
+
+    if vec_ut_type == 'inferSent':
+        from vectors.infersent_vector_utils import VectorUtils
+        vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+        index_dimensions = 4096
+    elif vec_ut_type == 'average':
+        from vectors.average_vector_utils import VectorUtils
+        vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+    elif vec_ut_type == "averageStem":
+        from vectors.average_stem_vector_utils import VectorUtils
+        vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+    elif vec_ut_type == 'sentence':
+        from vectors.sentence_vector_utils import VectorUtils
+        vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+    else:
+        from vectors.sentence_stem_vector_utils import VectorUtils
+        vector_utills = VectorUtils(setup_state.app.config.get('LANGUAGE'), redis_host, redis_port, redis_db)
+
     manage_faiss_index(
-        setup_state.app.config.get('INDEX_DIMENSIONS'),
+        index_dimensions,
         setup_state.app.config.get('INDEX_INPUT_QUEUE'),
         setup_state.app.config.get('INDEX_FILE_PATH'),
         setup_state.app.config.get('IDS_MAP_FILE_PATH'),
