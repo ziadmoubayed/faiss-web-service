@@ -1,14 +1,12 @@
-# Gorih extensions
-Before launching APP please provide configuration file with yours parameters
+#Reactive k Nearest Neighbor (kNN)
 
-configurations file is situated here -> /faiss-web-service/resources/configurations.py
+This is an effort to create an efficient similarity search api for reactive systems.
+In addition to the faiss web service. It launches an async thread that reads from redis, creates the vector and adds it the index.
+Vectors are added in batch to the index based on configured freq.
+Config file is situated here -> resources/configurations.py
+If index and ids files already exist, they will be loaded, else a new index is created.
 
-Once application launched, it will try to read files with index and Ids mapping.
-If files was found it will instantiate out of them. Otherwise - it will create new
-faiss index.
-On start of application also will be started asynchronous task for consuming documents
-from redis queue, making vectors out of them and updating faiss index.
-With configured frequency, task will save index and id's mapping to the appropriate files.
+This is a POC, and a work in progress.
 
 # Faiss Web Service
 
