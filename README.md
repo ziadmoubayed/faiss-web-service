@@ -1,4 +1,4 @@
-#Reactive k Nearest Neighbor (kNN)
+# Reactive k Nearest Neighbor (kNN)
 
 This is an effort to create an efficient similarity search api for reactive systems.
 In addition to the faiss web service. It launches an async thread that reads from redis, creates the vector and adds it the index.
